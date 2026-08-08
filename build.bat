@@ -14,7 +14,7 @@ if errorlevel 1 (
 
 echo.
 echo [2/3] Building executable with PyInstaller...
-python -m PyInstaller --onefile --windowed --name "FacebookReelDownloader" --distpath "dist" --workpath "build" --specpath "." main.py
+python -m PyInstaller --onefile --windowed --name "FacebookReelDownloader" --distpath "dist" --workpath "build" --specpath "." --icon "media\icon.ico" --add-data "media\icon.ico;media" main.py
 if errorlevel 1 (
     echo ERROR: Failed to build executable
     pause

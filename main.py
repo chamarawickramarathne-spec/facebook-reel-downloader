@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 import threading
 import os
+import sys
 import re
 import yt_dlp
 from PIL import Image, ImageDraw
@@ -43,6 +44,7 @@ class FacebookReelDownloader:
         self.root.geometry("520x580")
         self.root.minsize(520, 580)
         self.root.configure(fg_color=self.BG)
+        self._set_icon()
 
         self.downloading = False
         self.fetching = False
@@ -74,6 +76,17 @@ class FacebookReelDownloader:
             b = int(b1 + (b2 - b1) * t)
             draw.line([(0, y), (w, y)], fill=(r, g, b))
         return ctk.CTkImage(light_image=img, dark_image=img, size=(w, h))
+
+    @staticmethod
+    def _resource(rel):
+        base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base, rel)
+
+    def _set_icon(self):
+        try:
+            self.root.iconbitmap(self._resource(os.path.join("media", "icon.ico")))
+        except Exception:
+            pass
 
     def _build_ui(self):
         # ── Header ──────────────────────────────────────────────

@@ -3,6 +3,9 @@ dist/
 build/
 installer/*.exe
 
+# Sell/promotional assets (keep out of repo)
+Facebook Fetcher  Sell/
+
 # Python
 __pycache__/
 *.pyc

@@ -7,6 +7,7 @@ DefaultDirName={autopf}\Facebook Reel Downloader
 DefaultGroupName=Facebook Reel Downloader
 OutputDir=installer
 OutputBaseFilename=FacebookReelDownloader-Setup
+SetupIconFile=media\icon.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
