@@ -7,7 +7,7 @@ import tempfile
 import threading
 import urllib.request
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 GITHUB_OWNER = "chamarawickramarathne-spec"
 GITHUB_REPO = "facebook-reel-downloader"
 RELEASES_API = (
