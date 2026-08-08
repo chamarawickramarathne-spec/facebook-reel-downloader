@@ -1,0 +1,31 @@
+# Facebook Reel Downloader
+
+## App overview
+- **Title:** Facebook Reel Downloader
+- **Type:** Windows desktop app (Python / customtkinter, packaged with PyInstaller + Inno Setup)
+- **Purpose:** Paste a Facebook Reel URL to fetch info, pick quality, and download video to `~/Downloads`.
+- **Update system:** Self-update via GitHub Releases. App queries the latest release on startup; if a newer version exists it downloads and launches the installer (`...-Setup.exe`), then exits. Installer uses `CloseApplications=yes` to replace the running exe.
+
+## Tech stack
+- Python 3.14, yt-dlp, Pillow, customtkinter
+- Build: `build.bat` (PyInstaller onefile + Inno Setup)
+- Repo: github.com/chamarawickramarathne-spec/facebook-reel-downloader
+
+## Version / modification memory
+
+### v1.0.0 — 2026-08-08
+- Initial release.
+- Core reel fetch + quality selection + download to Downloads folder.
+- Added GitHub update feature:
+  - New `updater.py` (UpdateManager) checks `releases/latest` on startup in a background thread.
+  - Update bar UI in main window when a newer version exists; button downloads installer and relaunches it.
+  - Added `__version__`/repo constants; installer version set to 1.0.0 with `CloseApplications=yes` + `RestartApplications=yes`.
+- Created public GitHub repo and v1.0.0 release with installer + portable exe assets.
+
+## Build / release steps
+1. `build.bat` — builds `dist\FacebookReelDownloader.exe` and `installer\FacebookReelDownloader-Setup.exe`.
+2. Bump `APP_VERSION` in `updater.py` and `AppVersion` in `installer.iss`.
+3. `gh release create v1.0.x "installer\FacebookReelDownloader-Setup.exe" "dist\FacebookReelDownloader.exe" --title "v1.0.x" --notes "..."`
+
+## Media
+- Images in `Facebook Fetcher  Sell/`. Marketing/logo assets live under `media/` (to be added).

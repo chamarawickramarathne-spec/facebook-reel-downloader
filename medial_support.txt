@@ -1,0 +1,21 @@
+1. TITLE
+Facebook Reel Downloader
+
+2. SHORT DESCRIPTION
+Save any Facebook Reel as a high-quality MP4 in one click. Free, fast, no login needed.
+
+3. LONG DESCRIPTION
+Facebook Reel Downloader is a free Windows desktop app that lets you download any public Facebook Reel to your computer in the highest available quality. Just paste a Reel URL, pick your preferred resolution, and the video is saved straight to your Downloads folder. Built for speed and simplicity, the app shows a thumbnail and available qualities before you download, gives you a live progress bar, and even checks automatically for updates so you always run the latest version. No ads, no watermarks, no account required.
+
+4. FACEBOOK POST TEXT
+Download any Facebook Reel to your PC in seconds - free and no login needed! Just paste the link, pick your quality, and it lands in your Downloads folder. Perfect for saving travel videos, tutorials, memes and family moments to watch offline anytime. Try it now!
+
+5. TAGS (10)
+#FacebookReelDownloader, #ReelDownloader, #FacebookDownloader, #SaveReels, #DownloadReels, #VideoDownloader, #FacebookVideos, #OfflineVideos, #DownloadApp, #WindowsApp
+
+6. IMAGE PROMPTS (5)
+a) Modern dark UI screenshot of the app main screen with a URL entry field, glowing blue FETCH button and dark glass card design, 2K.
+b) A reel being pulled down from a glowing smartphone screen into a downloads folder icon, purple-blue gradient background, 3D render, 2K.
+c) Split comparison: original Reel preview on left vs. saved HD MP4 file with a green checkmark on right, dark theme, 2K.
+d) Floating video thumbnails with download arrows orbiting a sleek desktop monitor, dark navy UI, cinematic lighting, 2K.
+e) Hand holding a phone showing a Reel with a "Downloaded ✓" toast while the PC downloads the video, warm accents on dark background, 2K.
