@@ -1,3 +1,3 @@
-yt-dlp
-Pillow
-customtkinter
+yt-dlp>=2024.1.0,<2026
+Pillow>=10.0.0,<12
+customtkinter>=5.2.0,<6

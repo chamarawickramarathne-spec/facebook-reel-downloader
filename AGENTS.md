@@ -4,7 +4,7 @@
 - **Title:** Facebook Reel Downloader
 - **Type:** Windows desktop app (Python / customtkinter, packaged with PyInstaller + Inno Setup)
 - **Purpose:** Paste a Facebook Reel URL to fetch info, pick quality, and download video to `~/Downloads`.
-- **Update system:** Self-update via GitHub Releases. App queries the latest release on startup; if a newer version exists it downloads and launches the installer (`...-Setup.exe`), then exits. Installer uses `CloseApplications=yes` to replace the running exe.
+- **Update system:** Self-update via GitHub Releases. App queries the latest release on startup; if a newer version exists it downloads and launches the architecture-matched installer (`...-Setup-x86.exe` or `...-Setup-x64.exe`), then exits. Installer uses `CloseApplications=yes` to replace the running exe.
 
 ## Tech stack
 - Python 3.14, yt-dlp, Pillow, customtkinter
@@ -30,9 +30,62 @@
 - Created public GitHub repo and v1.0.0 release with installer + portable exe assets.
 
 ## Build / release steps
-1. `build.bat` — builds `dist\FacebookReelDownloader.exe` and `installer\FacebookReelDownloader-Setup.exe`.
+1. `build.bat` — builds both x86 and x64 executables + installers (requires `py -3.14` [x64] and `py -3.12-32` [x86]).
 2. Bump `APP_VERSION` in `updater.py` and `AppVersion` in `installer.iss`.
-3. `gh release create v1.0.x "installer\FacebookReelDownloader-Setup.exe" "dist\FacebookReelDownloader.exe" --title "v1.0.x" --notes "..."`
+3. `gh release create v1.0.x "installer\FacebookReelDownloader-Setup-x86.exe" "installer\FacebookReelDownloader-Setup-x64.exe" "dist\x86\FacebookReelDownloader.exe" "dist\x64\FacebookReelDownloader.exe" --title "v1.0.x" --notes "..."`
+
+## Modification 002
+
+Date: 2026-08-19
+
+### Changes
+- Added dual-architecture builds (x86 32-bit + x64 64-bit).
+- `build.bat` now builds both architectures sequentially using `py -3.14-32` (x86) and `py -3.14` (x64).
+- `installer.iss` accepts `/DARCH=x86|x64` preprocessor define for architecture-specific builds.
+- `updater.py` detects system architecture via `struct.calcsize("P")` and downloads the matching installer (`-Setup-x86.exe` or `-Setup-x64.exe`).
+
+### Files / Components
+- `build.bat` — rewritten for dual-arch builds
+- `installer.iss` — added preprocessor `ARCH` define, conditional `ArchitecturesInstallIn64BitMode`
+- `updater.py` — added `_arch_suffix()` helper, `_find_installer()` filters by arch
+
+### Important Notes
+- Requires both 32-bit and 64-bit Python installed (uses `py -3.12-32` for x86, `py -3.14` for x64).
+- Build output: `dist/x86/`, `dist/x64/`, `installer/*-Setup-x86.exe`, `installer/*-Setup-x64.exe`.
+- GitHub releases must include both installer assets for the auto-updater to work on both architectures.
+
+## Modification 003
+
+Date: 2026-09-06
+
+### Changes
+- Full security audit performed; all findings remediated:
+  - **C1 (CRITICAL):** Auto-update now verifies the downloaded installer's SHA-256 against a hash declared in the release body (`sha256:<filename>=<hash>`) before executing. If no matching hash is present, the app **refuses** to auto-update (safe-fail).
+  - **H1 (HIGH):** Made shared download/fetch state thread-safe with a `threading.Lock` (`_state_lock`); guards `fetching`, `downloading`, `fetched_url`, `fetched_formats`.
+  - **H2 (HIGH):** Hardened thumbnail download in new `_load_thumbnail()`: HTTPS-only, domain allowlist (`facebook.com`, `fbcdn.net`), 5 MB read limit, and `PIL.Image.MAX_IMAGE_PIXELS` guard against decompression bombs.
+  - **M1/M5:** Pinned dependency version ranges in `requirements.txt`.
+  - **M2:** `build.bat` now installs dependencies for BOTH `py -3.14` (x64) and `py -3.12-32` (x86) before building each architecture.
+  - **M3:** Replaced silent `except: pass` in `updater.py` with file logging to `%LOCALAPPDATA%\FacebookReelDownloader\updater.log`.
+  - **M4:** `updater.py` schedules cleanup of the downloaded installer in `%TEMP%` after a successful update.
+  - **M5:** `updater.py` detects GitHub API rate limits (HTTP 403/429) and logs them; added a size-limit guard on the update-check response.
+  - **L1:** Removed dead `_fmt_dur` method.
+  - **L2:** Removed stale single-arch `FacebookReelDownloader.spec`.
+  - **L3:** Added `_friendly_error()` to sanitize error messages shown to the user.
+  - **L4:** Expanded `.gitignore` (added `.env`, `*.log`, `*.egg-info/`, `.pytest_cache/`).
+- Bumped version to **1.0.2** (`APP_VERSION` in `updater.py` and `AppVersion` in `installer.iss`).
+
+### Files / Components
+- `updater.py` — SHA-256 verification, logging, rate-limit handling, temp cleanup
+- `main.py` — thread-safety lock, hardened thumbnail loader, error sanitization, removed dead code
+- `requirements.txt` — pinned dependency ranges
+- `build.bat` — dual-Python dependency install
+- `installer.iss` — version bump to 1.0.2
+- `.gitignore` — expanded ignores
+- `FacebookReelDownloader.spec` — removed (stale)
+
+### Important Notes
+- The auto-updater now requires future GitHub releases to include `sha256:<installer-name>=<hash>` lines in the release body. Without these, auto-update is blocked by design.
+- The `#define ARCH`/`ArchitecturesInstallIn64BitMode` logic from Modification 002 is unchanged.
 
 ## Media
 - Images in `Facebook Fetcher  Sell/`. Marketing/logo assets live under `media/` (to be added).

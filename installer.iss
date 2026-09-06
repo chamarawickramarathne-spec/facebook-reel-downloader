@@ -1,12 +1,16 @@
+#ifndef ARCH
+  #define ARCH "x64"
+#endif
+
 [Setup]
 AppId={{FBREEL-DOWNLOADER-0001}
 AppName=Facebook Reel Downloader
-AppVersion=1.0.1
+AppVersion=1.0.2
 AppPublisher=Facebook Reel Downloader
 DefaultDirName={autopf}\Facebook Reel Downloader
 DefaultGroupName=Facebook Reel Downloader
 OutputDir=installer
-OutputBaseFilename=FacebookReelDownloader-Setup
+OutputBaseFilename=FacebookReelDownloader-Setup-{#ARCH}
 SetupIconFile=media\icon.ico
 Compression=lzma2
 SolidCompression=yes
@@ -14,12 +18,15 @@ WizardStyle=modern
 PrivilegesRequired=lowest
 CloseApplications=yes
 RestartApplications=yes
+#if ARCH == "x64"
+ArchitecturesInstallIn64BitMode=x64compatible
+#endif
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "dist\FacebookReelDownloader.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\{#ARCH}\FacebookReelDownloader.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Facebook Reel Downloader"; Filename: "{app}\FacebookReelDownloader.exe"

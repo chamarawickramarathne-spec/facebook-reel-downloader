@@ -1,6 +1,7 @@
 # Build outputs
 dist/
 build/
+*.spec
 installer/*.exe
 
 # Sell/promotional assets (keep out of repo)
@@ -10,5 +11,12 @@ Facebook Fetcher  Sell/
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+.pytest_cache/
 .venv/
 venv/
+
+# Environment / logs
+.env
+.env.*
+*.log

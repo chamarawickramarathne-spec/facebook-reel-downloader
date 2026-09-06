@@ -46,6 +46,7 @@ class FacebookReelDownloader:
         self.root.configure(fg_color=self.BG)
         self._set_icon()
 
+        self._state_lock = threading.Lock()
         self.downloading = False
         self.fetching = False
         self.fetched_formats = []
@@ -373,10 +374,10 @@ class FacebookReelDownloader:
         url = self.url_var.get().strip()
         if not self._validate_url(url):
             return
-        if self.fetching or self.downloading:
-            return
-
-        self.fetching = True
+        with self._state_lock:
+            if self.fetching or self.downloading:
+                return
+            self.fetching = True
         self.fetch_btn.configure(state="disabled")
         self.info_card.pack_forget()
         self.progress_var.set(0)
@@ -422,26 +423,42 @@ class FacebookReelDownloader:
             thumb_photo = None
             thumb_url = info.get("thumbnail")
             if thumb_url:
-                try:
-                    req = urllib.request.Request(thumb_url,
-                                                 headers={"User-Agent": "Mozilla/5.0"})
-                    with urllib.request.urlopen(req, timeout=10) as resp:
-                        data = resp.read()
-                    img = Image.open(io.BytesIO(data))
-                    img = img.resize((180, 100), Image.LANCZOS)
-                    thumb_photo = ctk.CTkImage(light_image=img, dark_image=img,
-                                                size=(180, 100))
-                except Exception:
-                    thumb_photo = None
+                thumb_photo = self._load_thumbnail(thumb_url)
 
             self.root.after(0, self._show_card, thumb_photo, quality_list)
 
         except Exception as e:
             self.root.after(0, self._fetch_err, str(e))
         finally:
-            self.fetching = False
+            with self._state_lock:
+                self.fetching = False
             self.root.after(0, self._spin_stop)
             self.root.after(0, self.fetch_btn.configure, (), {"state": "normal"})
+
+    def _load_thumbnail(self, url):
+        allowed_domains = ("facebook.com", "fbcdn.net")
+        try:
+            from urllib.parse import urlparse
+            host = (urlparse(url).hostname or "").lower()
+            if url.lower().startswith("http://"):
+                return None
+            if not any(host == d or host.endswith("." + d) for d in allowed_domains):
+                return None
+            req = urllib.request.Request(url,
+                                         headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = resp.read(5 * 1024 * 1024 + 1)
+            if len(data) > 5 * 1024 * 1024:
+                return None
+            from PIL import Image as _Img
+            _Img.MAX_IMAGE_PIXELS = 40_000_000
+            img = Image.open(io.BytesIO(data))
+            img.load()
+            img = img.resize((180, 100), _Img.LANCZOS)
+            return ctk.CTkImage(light_image=img, dark_image=img,
+                                size=(180, 100))
+        except Exception:
+            return None
 
     def _show_card(self, thumb, qlist):
         self._thumb_photo = thumb
@@ -464,39 +481,40 @@ class FacebookReelDownloader:
         self._show_notif("Video info loaded successfully", self.GREEN)
 
     def _fetch_err(self, msg):
+        friendly = self._friendly_error(msg)
         self.status_label.configure(text_color=self.RED)
-        self.status_var.set(f"Failed to fetch: {msg[:80]}")
-        self._show_notif(f"Error: {msg[:120]}", self.RED)
+        self.status_var.set(f"Failed to fetch: {friendly}")
+        self._show_notif(f"Error: {friendly}", self.RED)
 
     # ── Download ────────────────────────────────────────────────
     def _start_download(self):
-        if self.downloading or self.fetching:
-            return
-        if not self.fetched_url or not self.fetched_formats:
-            self.status_label.configure(text_color=self.RED)
-            self.status_var.set("Fetch a video first")
-            self._show_notif("Fetch a video first", self.RED)
-            return
-
-        sel = self.quality_var.get()
-        if not sel:
-            self.status_label.configure(text_color=self.RED)
-            self.status_var.set("Select a quality")
-            self._show_notif("Select a quality", self.RED)
-            return
-
-        fmt = None
-        for q in self.fetched_formats:
-            if q["label"] == sel:
-                fmt = q
-                break
-        if not fmt:
-            fmt = self.fetched_formats[0]
+        with self._state_lock:
+            if self.downloading or self.fetching:
+                return
+            if not self.fetched_url or not self.fetched_formats:
+                self.status_label.configure(text_color=self.RED)
+                self.status_var.set("Fetch a video first")
+                self._show_notif("Fetch a video first", self.RED)
+                return
+            sel = self.quality_var.get()
+            if not sel:
+                self.status_label.configure(text_color=self.RED)
+                self.status_var.set("Select a quality")
+                self._show_notif("Select a quality", self.RED)
+                return
+            fmt = None
+            for q in self.fetched_formats:
+                if q["label"] == sel:
+                    fmt = q
+                    break
+            if not fmt:
+                fmt = self.fetched_formats[0]
+            url = self.fetched_url
+            self.downloading = True
 
         save_dir = os.path.join(os.path.expanduser("~"), "Downloads")
         os.makedirs(save_dir, exist_ok=True)
 
-        self.downloading = True
         self.download_btn.configure(state="disabled")
         self.fetch_btn.configure(state="disabled")
         self.progress_var.set(0)
@@ -505,7 +523,7 @@ class FacebookReelDownloader:
         self.status_var.set("Preparing download...")
         self._spin_start()
 
-        threading.Thread(target=self._download, args=(self.fetched_url, fmt, save_dir),
+        threading.Thread(target=self._download, args=(url, fmt, save_dir),
                          daemon=True).start()
 
     def _download(self, url, fmt, save_dir):
@@ -557,26 +575,29 @@ class FacebookReelDownloader:
             self.root.after(0, self._spin_stop)
             self.root.after(0, self.status_label.configure,
                             (), {"text_color": self.RED})
-            self.root.after(0, self.status_var.set, f"Download failed: {str(e)[:80]}")
-            self.root.after(0, self._show_notif, f"Download failed: {str(e)[:120]}", self.RED)
+            friendly = self._friendly_error(str(e))
+            self.root.after(0, self.status_var.set, f"Download failed: {friendly}")
+            self.root.after(0, self._show_notif, f"Download failed: {friendly}", self.RED)
         finally:
-            self.downloading = False
+            with self._state_lock:
+                self.downloading = False
             self.root.after(0, self.download_btn.configure, (), {"state": "normal"})
             self.root.after(0, self.fetch_btn.configure, (), {"state": "normal"})
             self.root.after(0, self.progress_var.set, 0)
             self.root.after(0, self.pct_var.set, "0%")
 
     @staticmethod
-    def _fmt_dur(sec):
-        m, s = divmod(int(sec), 60)
-        h, m = divmod(m, 60)
-        return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
-
-    @staticmethod
     def _sanitize(name):
         name = re.sub(r'[<>:"/\\|?*\x00-\x1f]', '_', name)
         name = name.strip(". ")
         return name[:200] if name else "facebook_reel"
+
+    @staticmethod
+    def _friendly_error(msg):
+        msg = (msg or "").replace("\n", " ").strip()
+        if not msg:
+            return "Unknown error"
+        return msg[:120]
 
 
 if __name__ == "__main__":
