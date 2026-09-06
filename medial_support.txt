@@ -2,20 +2,20 @@
 Facebook Reel Downloader
 
 2. SHORT DESCRIPTION
-Save any Facebook Reel as a high-quality MP4 in one click. Free, fast, secure, no login needed.
+Save any Facebook Reel as a high-quality MP4 in one click. Free, fast, secure, no login needed — with full control over app updates.
 
 3. LONG DESCRIPTION
-Facebook Reel Downloader is a free Windows desktop app that lets you download any public Facebook Reel to your computer in the highest available quality. Just paste a Reel URL, pick your preferred resolution, and the video is saved straight to your Downloads folder. Built for speed and simplicity, the app shows a thumbnail and available qualities before you download, gives you a live progress bar and speed indicator, and checks automatically for updates so you always run the latest version. Security is front and center: every automatic update is verified with SHA-256 integrity checks before installation, thumbnail and media downloads are hard-limited and restricted to trusted sources, and the app never asks for your Facebook login or stores any personal data. No ads, no watermarks, no account required.
+Facebook Reel Downloader is a free Windows desktop app that lets you download any public Facebook Reel to your computer in the highest available quality. Just paste a Reel URL, pick your preferred resolution, and the video is saved straight to your Downloads folder. Built for speed and simplicity, the app shows a thumbnail and available qualities before you download, gives you a live progress bar and speed indicator, and keeps itself up to date safely. You stay in control of updates: check for the latest version anytime with one click, or choose whether the app checks for updates automatically on startup. Security is front and center: every update is verified with SHA-256 integrity checks before installation, media downloads are hard-limited and restricted to trusted sources, and the app never asks for your Facebook login or stores any personal data. No ads, no watermarks, no account required.
 
 4. FACEBOOK POST TEXT
-Download any Facebook Reel to your PC in seconds - free and no login needed! Just paste the link, pick your quality, and it lands in your Downloads folder. The app verifies every update with SHA-256 integrity checks so you always get a safe, genuine version, and it never touches your account or personal data. Perfect for saving travel videos, tutorials, memes and family moments to watch offline anytime. Try it now!
+Download any Facebook Reel to your PC in seconds - free and no login needed! Just paste the link, pick your quality, and it lands in your Downloads folder. You're in control of updates too: check for the newest version any time with one click, or let the app check automatically on startup - your choice. Every update is SHA-256 verified for safety, and the app never touches your account or personal data. Perfect for saving travel videos, tutorials, memes and family moments to watch offline anytime. Try it now!
 
 5. TAGS (10)
 #FacebookReelDownloader, #ReelDownloader, #FacebookDownloader, #SaveReels, #DownloadReels, #VideoDownloader, #FacebookVideos, #OfflineVideos, #DownloadApp, #WindowsApp
 
 6. IMAGE PROMPTS (5)
-a) Modern dark UI screenshot of the app main screen with a URL entry field, glowing blue FETCH button and dark glass card design, with a subtle green shield icon hinting at secure verified downloads, 2K.
+a) Modern dark UI screenshot of the app main screen with a URL entry field, glowing blue FETCH button, dark glass card design, and a compact updates settings row with a check box and "Check for updates" button, 2K.
 b) The app logo close-up: dark rounded square tile with a glowing blue reel ring and green download arrow, on a navy gradient background, 3D render, 2K.
 c) Split comparison: original Reel preview on left vs. saved HD MP4 file with a green checkmark and shield on right, dark theme, 2K.
-d) Floating video thumbnails with download arrows orbiting a sleek desktop monitor, dark navy UI with a security shield motif, cinematic lighting, 2K.
-e) Hand holding a phone showing a Reel with a "Downloaded ✓" toast while the PC securely downloads the video behind a glowing shield, warm accents on dark background, 2K.
+d) Floating video thumbnails with download arrows orbiting a sleek desktop monitor, dark navy UI with a security shield and update-tick motif, cinematic lighting, 2K.
+e) Hand holding a phone showing a Reel with a "Downloaded ✓" toast while the PC securely updates and downloads videos behind a glowing shield, warm accents on dark background, 2K.

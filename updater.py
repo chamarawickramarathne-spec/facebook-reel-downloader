@@ -10,7 +10,7 @@ import threading
 import time
 import urllib.request
 
-APP_VERSION = "1.0.2"
+APP_VERSION = "1.0.3"
 GITHUB_OWNER = "chamarawickramarathne-spec"
 GITHUB_REPO = "facebook-reel-downloader"
 RELEASES_API = (
@@ -61,16 +61,42 @@ def _parse_hashes(release_body):
 
 
 class UpdateManager:
-    def __init__(self, on_available, on_download_progress):
+    def __init__(self, on_available, on_download_progress,
+                 on_no_update=None, on_error=None):
         self.on_available = on_available
         self.on_download_progress = on_download_progress
+        self.on_no_update = on_no_update
+        self.on_error = on_error
         self._latest = None
         self._cancel = False
+        self._check_lock = threading.Lock()
+        self._checking = False
         _setup_logging()
         logging.info("Updater initialized, app version %s", APP_VERSION)
 
-    def start(self):
-        threading.Thread(target=self._check, daemon=True).start()
+    def start(self, auto_check=True):
+        if not auto_check:
+            logging.info("Auto update check disabled by user setting")
+            return
+        self.check_now()
+
+    def check_now(self):
+        with self._check_lock:
+            if self._checking:
+                return
+            self._checking = True
+        threading.Thread(target=self._run_check, daemon=True).start()
+
+    def _run_check(self):
+        try:
+            self._check()
+        except Exception as e:
+            logging.error("Update check failed: %s", e)
+            if self.on_error:
+                self.on_error()
+        finally:
+            with self._check_lock:
+                self._checking = False
 
     def _fetch(self, url, timeout, max_bytes=None):
         req = urllib.request.Request(url,
@@ -95,10 +121,14 @@ class UpdateManager:
             current = parse_version(APP_VERSION)
             if not latest or not current or latest <= current:
                 logging.debug("No newer version; tag=%s", tag)
+                if self.on_no_update:
+                    self.on_no_update()
                 return
             installer = self._find_installer(data.get("assets", []))
             if not installer:
                 logging.warning("No matching installer asset in release %s", tag)
+                if self.on_error:
+                    self.on_error()
                 return
             hashes = _parse_hashes(data.get("body"))
             target_name = installer["name"]
@@ -107,6 +137,8 @@ class UpdateManager:
                 logging.error(
                     "Release %s has no sha256 for %s; refusing auto-update",
                     tag, target_name)
+                if self.on_error:
+                    self.on_error()
                 return
             installer["sha256"] = expected_hash
             self._latest = {"tag": tag, "version": latest, "asset": installer}
@@ -114,6 +146,8 @@ class UpdateManager:
             self.on_available(self._latest)
         except Exception as e:
             logging.error("Update check failed: %s", e)
+            if self.on_error:
+                self.on_error()
 
     @staticmethod
     def _find_installer(assets):

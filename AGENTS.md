@@ -87,5 +87,33 @@ Date: 2026-09-06
 - The auto-updater now requires future GitHub releases to include `sha256:<installer-name>=<hash>` lines in the release body. Without these, auto-update is blocked by design.
 - The `#define ARCH`/`ArchitecturesInstallIn64BitMode` logic from Modification 002 is unchanged.
 
+## Modification 004
+
+Date: 2026-09-06
+
+### Changes
+- Added user-controllable update options:
+  - **Manual "Check for updates" button** in a new always-visible settings row beneath the app tagline. Triggers `UpdateManager.check_now()` and reports results via the update bar / notifications:
+    - New version → update bar with UPDATE button (existing flow).
+    - Up to date → "You're up to date (vX.Y.Z)" auto-hides after 3 s.
+    - Error/rate-limited/no-hash → "Update check failed — try again later" auto-hides after 4 s.
+  - **"Auto-check on startup" checkbox** (default ON) persisted to `%LOCALAPPDATA%\FacebookReelDownloader\config.json` via new `config.py`.
+- `updater.py` refactor:
+  - `start(auto_check=True)` only spawns the startup check when enabled.
+  - New public `check_now()` runs a check in a background thread; guarded by `_check_lock`/`_checking` so concurrent checks no-op.
+  - `_check()` now dispatches `on_no_update` / `on_error` callbacks (previously silent).
+- `main.py`: all updater callbacks marshalled to the Tk main thread via `root.after(0, ...)` (Tk is not thread-safe).
+
+### Files / Components
+- `config.py` — new: hardened JSON settings store (bounded read, strict key/type validation, atomic write, thread lock)
+- `updater.py` — `start(auto_check)`, `check_now()`, `_checking` guard, no-update/error callbacks, version 1.0.3
+- `main.py` — settings row UI (checkbox + check button), callback wiring, `root.after` marshalling
+- `installer.iss` — version bump to 1.0.3
+
+### Important Notes
+- Default behavior unchanged for existing users (auto-check ON).
+- No new dependencies (stdlib `json`/`os`/`threading` only).
+- `config.py` never stores secrets; unknown/invalid keys are ignored and defaults preserved.
+
 ## Media
 - Images in `Facebook Fetcher  Sell/`. Marketing/logo assets live under `media/` (to be added).

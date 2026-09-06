@@ -8,6 +8,7 @@ import yt_dlp
 from PIL import Image, ImageDraw
 import urllib.request
 import io
+import config
 import updater
 
 ctk.set_appearance_mode("dark")
@@ -55,15 +56,20 @@ class FacebookReelDownloader:
         self._spin_idx = 0
         self._spin_on = False
         self._grad_img = None
+        self._latest_available = False
+        self.settings = config.Settings()
 
         self._build_ui()
         self._bind_events()
 
         self.updater = updater.UpdateManager(
-            on_available=self._show_update,
-            on_download_progress=self._update_progress,
+            on_available=lambda latest: self.root.after(0, self._show_update, latest),
+            on_download_progress=lambda frac: self.root.after(0, self._update_progress, frac),
+            on_no_update=lambda: self.root.after(0, self._on_no_update),
+            on_error=lambda: self.root.after(0, self._on_update_check_error),
         )
-        self.updater.start()
+        self.updater.start(
+            auto_check=self.settings.get("auto_check_updates"))
 
     def _make_gradient(self, w, h, c1, c2):
         img = Image.new("RGB", (w, h))
@@ -107,6 +113,33 @@ class FacebookReelDownloader:
             font=ctk.CTkFont(size=12),
             text_color=self.TEXT_DIM,
         ).pack(anchor="w", padx=28, pady=(2, 0))
+
+        # ── Settings row ────────────────────────────────────────
+        settings_row = ctk.CTkFrame(self.root, fg_color="transparent")
+        settings_row.pack(fill="x", padx=24, pady=(8, 0))
+
+        self.auto_check_var = ctk.BooleanVar(
+            value=bool(self.settings.get("auto_check_updates")))
+        ctk.CTkCheckBox(
+            settings_row, text="Auto-check on startup",
+            variable=self.auto_check_var,
+            command=self._on_auto_check_toggle,
+            font=ctk.CTkFont(size=11),
+            text_color=self.TEXT_DIM,
+            fg_color=self.ACCENT,
+            hover_color=self.ACCENT_HVR,
+            border_color=self.BORDER,
+            checkbox_width=18, checkbox_height=18,
+        ).pack(side="left")
+
+        ctk.CTkButton(
+            settings_row, text="Check for updates",
+            width=130, height=26,
+            corner_radius=8, font=ctk.CTkFont(size=11, weight="bold"),
+            fg_color=self.SURFACE, hover_color=self.SURFACE_HVR,
+            border_width=1, border_color=self.BORDER,
+            text_color=self.TEXT, command=self._manual_check_updates,
+        ).pack(side="right")
 
         # ── Update bar (hidden until an update is found) ────────
         self.update_bar = ctk.CTkFrame(self.root, fg_color=self.SURFACE,
@@ -295,10 +328,35 @@ class FacebookReelDownloader:
         self.notif_card.pack(fill="x", pady=(0, 12))
 
     # ── Updates ─────────────────────────────────────────────────
+    def _on_auto_check_toggle(self):
+        self.settings.set("auto_check_updates", bool(self.auto_check_var.get()))
+
+    def _manual_check_updates(self):
+        self.update_var.set("Checking for updates...")
+        self.update_bar.pack(fill="x", padx=24, pady=(10, 0))
+        self.updater.check_now()
+
     def _show_update(self, latest):
+        self._latest_available = True
         self.update_var.set(f"Update available: {latest['tag']}")
         self.update_btn.configure(state="normal")
         self.update_bar.pack(fill="x", padx=24, pady=(10, 0))
+
+    def _on_no_update(self):
+        self.update_var.set(f"You're up to date (v{updater.APP_VERSION})")
+        self.update_btn.configure(state="normal")
+        self.update_bar.pack(fill="x", padx=24, pady=(10, 0))
+        self.root.after(3000, self._hide_update_bar)
+
+    def _on_update_check_error(self):
+        self.update_var.set("Update check failed — try again later")
+        self.update_btn.configure(state="normal")
+        self.update_bar.pack(fill="x", padx=24, pady=(10, 0))
+        self.root.after(4000, self._hide_update_bar)
+
+    def _hide_update_bar(self):
+        if not self._latest_available:
+            self.update_bar.pack_forget()
 
     def _start_update(self):
         self.update_btn.configure(state="disabled")

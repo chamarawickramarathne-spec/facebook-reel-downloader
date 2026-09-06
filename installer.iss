@@ -5,7 +5,7 @@
 [Setup]
 AppId={{FBREEL-DOWNLOADER-0001}
 AppName=Facebook Reel Downloader
-AppVersion=1.0.2
+AppVersion=1.0.3
 AppPublisher=Facebook Reel Downloader
 DefaultDirName={autopf}\Facebook Reel Downloader
 DefaultGroupName=Facebook Reel Downloader
